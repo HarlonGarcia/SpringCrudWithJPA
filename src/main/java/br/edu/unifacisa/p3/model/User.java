@@ -1,16 +1,17 @@
 package br.edu.unifacisa.p3.model;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
-@Entity(name = "user")
-@Data
+@Entity(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
 public class User {
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private int id;
 
     @Column

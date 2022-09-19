@@ -1,9 +1,10 @@
 package br.edu.unifacisa.p3.controller;
 
+import br.edu.unifacisa.p3.exceptions.NoContentException;
+import br.edu.unifacisa.p3.exceptions.UserAlreadyExistsException;
 import br.edu.unifacisa.p3.model.User;
 import br.edu.unifacisa.p3.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +19,12 @@ public class UserController {
     UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> findUserById(@Param("id") int id) {
+    public ResponseEntity<User> findUserById(@PathVariable("id") int id) {
         try {
             User user = userService.findUserById(id);
             return new ResponseEntity<User>(user, HttpStatus.OK);
+        } catch (NoContentException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -29,21 +32,19 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<User>> findAllUsers() {
-        try {
-            List<User> users = userService.findAllUsers();
-            return new ResponseEntity<List<User>>(users, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<List<User>>(userService.findAllUsers(), HttpStatus.OK);
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") int id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable("id") int id) {
         try {
             userService.deleteUser(id);
             return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NoContentException e) {
+          return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
         }
     }
 
@@ -51,8 +52,23 @@ public class UserController {
     public ResponseEntity<User> updateUser(@RequestBody User user) {
         try {
             return new ResponseEntity<>(userService.updateUser(user), HttpStatus.OK);
-        } catch (Exception e) {
+        } catch (NoContentException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        try {
+            return new ResponseEntity<>(userService.createUser(user), HttpStatus.CREATED);
+        } catch (UserAlreadyExistsException e) {
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
     }
 }
